@@ -104,20 +104,3 @@ resource "aws_apigatewayv2_route" "proxy" {
   route_key = "ANY /{proxy+}"
   target    = "integrations/${aws_apigatewayv2_integration.alb.id}"
 }
-
-# Domain Name (opcional - requiere certificado SSL)
-# resource "aws_apigatewayv2_domain_name" "main" {
-#   domain_name = "api.${var.project_name}.com"
-#   
-#   domain_name_configuration {
-#     certificate_arn = aws_acm_certificate.main.arn
-#     endpoint_type  = "REGIONAL"
-#     security_policy = "TLS_1_2"
-#   }
-# }
-#
-# resource "aws_apigatewayv2_api_mapping" "main" {
-#   api_id      = aws_apigatewayv2_api.main.id
-#   domain_name = aws_apigatewayv2_domain_name.main.id
-#   stage       = aws_apigatewayv2_stage.api.id
-# }
