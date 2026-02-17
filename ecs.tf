@@ -33,68 +33,67 @@ resource "aws_ecs_task_definition" "api" {
   task_role_arn            = aws_iam_role.ecs_task.arn
 
   container_definitions = jsonencode([
-    {
-      name  = "${var.project_name}-container"
-      image = "${aws_ecr_repository.api.repository_url}:${var.image_tag}"
+    merge(
+      {
+        name  = "${var.project_name}-container"
+        image = "${aws_ecr_repository.api.repository_url}:${var.image_tag}"
 
-      portMappings = [
-        {
-          containerPort = var.container_port
-          protocol      = "tcp"
+        portMappings = [
+          {
+            containerPort = var.container_port
+            protocol      = "tcp"
+          }
+        ]
+
+        environment = [
+          {
+            name  = "SERVER_PORT"
+            value = tostring(var.container_port)
+          },
+          {
+            name  = "SPRING_PROFILES_ACTIVE"
+            value = var.environment
+          }
+        ]
+
+        secrets = [
+          {
+            name      = "MONGODB_HOST"
+            valueFrom = "${aws_secretsmanager_secret.mongodb_credentials.arn}:MONGODB_HOST::"
+          },
+          {
+            name      = "MONGODB_USERNAME"
+            valueFrom = "${aws_secretsmanager_secret.mongodb_credentials.arn}:MONGODB_USERNAME::"
+          },
+          {
+            name      = "MONGODB_PASSWORD"
+            valueFrom = "${aws_secretsmanager_secret.mongodb_credentials.arn}:MONGODB_PASSWORD::"
+          },
+          {
+            name      = "MONGODB_DATABASE"
+            valueFrom = "${aws_secretsmanager_secret.mongodb_credentials.arn}:MONGODB_DATABASE::"
+          }
+        ]
+
+        logConfiguration = {
+          logDriver = "awslogs"
+          options = {
+            "awslogs-group"         = aws_cloudwatch_log_group.ecs.name
+            "awslogs-region"        = var.aws_region
+            "awslogs-stream-prefix" = "ecs"
+          }
         }
-      ]
-
-      environment = [
-        {
-          name  = "SERVER_PORT"
-          value = tostring(var.container_port)
-        },
-        {
-          name  = "SPRING_PROFILES_ACTIVE"
-          value = var.environment
-        }
-      ]
-
-      secrets = [
-        {
-          name      = "MONGODB_HOST"
-          valueFrom = "${aws_secretsmanager_secret.mongodb_credentials.arn}:MONGODB_HOST::"
-        },
-        {
-          name      = "MONGODB_USERNAME"
-          valueFrom = "${aws_secretsmanager_secret.mongodb_credentials.arn}:MONGODB_USERNAME::"
-        },
-        {
-          name      = "MONGODB_PASSWORD"
-          valueFrom = "${aws_secretsmanager_secret.mongodb_credentials.arn}:MONGODB_PASSWORD::"
-        },
-        {
-          name      = "MONGODB_DATABASE"
-          valueFrom = "${aws_secretsmanager_secret.mongodb_credentials.arn}:MONGODB_DATABASE::"
-        }
-      ]
-
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          "awslogs-group"         = aws_cloudwatch_log_group.ecs.name
-          "awslogs-region"        = var.aws_region
-          "awslogs-stream-prefix" = "ecs"
-        }
-      }
-
-      # Health check opcional (solo si está habilitado y la imagen tiene wget/curl)
-      dynamic "healthCheck" {
-        for_each = var.enable_container_health_check ? [1] : []
-        content {
+      },
+      var.enable_container_health_check ? {
+        healthCheck = {
           command     = ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:${var.container_port}${var.health_check_path} || exit 1"]
           interval    = 30
           timeout     = 5
           retries     = 3
           startPeriod = 60
         }
-      }
-    }
+      } : {}
+    )
   ])
 
   tags = {

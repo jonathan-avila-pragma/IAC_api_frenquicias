@@ -64,23 +64,24 @@ La infraestructura incluye:
 
 Después de crear la infraestructura:
 
-1. Construye y etiqueta tu imagen Docker:
+1. **Construir imagen Docker**: Desde el directorio `deployment/` del proyecto
    ```bash
-   docker build -t api-franquicias .
-   docker tag api-franquicias:latest <ECR_REPOSITORY_URL>:latest
+   cd ../api-franquicias/deployment
+   docker build -t api-franquicias:latest .
    ```
 
-2. Autentica Docker con ECR:
+2. **Autenticar Docker con ECR**:
    ```bash
    aws ecr get-login-password --region <REGION> | docker login --username AWS --password-stdin <ECR_REPOSITORY_URL>
    ```
 
-3. Sube la imagen:
+3. **Etiquetar y subir la imagen**:
    ```bash
+   docker tag api-franquicias:latest <ECR_REPOSITORY_URL>:latest
    docker push <ECR_REPOSITORY_URL>:latest
    ```
 
-4. El servicio ECS detectará automáticamente la nueva imagen y actualizará las tareas.
+4. **El servicio ECS detectará automáticamente la nueva imagen** y actualizará las tareas.
 
 ## URLs Importantes
 
@@ -120,17 +121,3 @@ terraform destroy
 - El auto-scaling está configurado para escalar basado en CPU (70%) y memoria (80%)
 - Los logs se almacenan en CloudWatch con retención de 7 días
 - El API Gateway está configurado con CORS habilitado para todos los orígenes (ajusta según necesidad)
-
-## Optimización de Costos para Pruebas
-
-Para reducir costos en una cuenta de prueba:
-
-1. **Deshabilitar NAT Gateway**: Cambia `enable_nat_gateway = false` en `terraform.tfvars`
-   - Ahorra ~$64/mes
-   - Los contenedores ECS se ejecutarán en subnets públicas (aceptable para pruebas)
-
-2. **Reducir instancias**: Cambia `desired_count = 1` y `min_capacity = 1`
-
-3. **Health Check**: Mantén `enable_container_health_check = false` a menos que tu imagen tenga wget/curl
-
-Ver `CHECKS.md` para más detalles sobre costos y configuración.

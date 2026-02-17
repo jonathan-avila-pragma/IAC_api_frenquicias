@@ -66,26 +66,20 @@ resource "aws_apigatewayv2_vpc_link" "main" {
   tags = {
     Name = "${var.project_name}-vpc-link"
   }
-
-  # VPC Link puede tardar varios minutos en establecerse
-  timeouts {
-    create = "10m"
-    delete = "10m"
-  }
 }
 
 # Integración HTTP con el ALB
 resource "aws_apigatewayv2_integration" "alb" {
-  api_id           = aws_apigatewayv2_api.main.id
-  integration_type = "HTTP_PROXY"
-  integration_uri   = "http://${aws_lb.main.dns_name}"
+  api_id             = aws_apigatewayv2_api.main.id
+  integration_type   = "HTTP_PROXY"
+  integration_uri    = "http://${aws_lb.main.dns_name}"
   integration_method = "ANY"
-  
-  connection_type      = "VPC_LINK"
-  connection_id        = aws_apigatewayv2_vpc_link.main.id
-  
+
+  connection_type = "VPC_LINK"
+  connection_id   = aws_apigatewayv2_vpc_link.main.id
+
   payload_format_version = "1.0"
-  
+
   request_parameters = {
     "overwrite:path" = "$request.path"
   }

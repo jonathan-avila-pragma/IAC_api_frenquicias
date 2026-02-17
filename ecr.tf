@@ -26,9 +26,9 @@ resource "aws_ecr_lifecycle_policy" "api" {
         rulePriority = 1
         description  = "Mantener las últimas 10 imágenes"
         selection = {
-          tagStatus     = "any"
-          countType     = "imageCountMoreThan"
-          countNumber   = 10
+          tagStatus   = "any"
+          countType   = "imageCountMoreThan"
+          countNumber = 10
         }
         action = {
           type = "expire"
