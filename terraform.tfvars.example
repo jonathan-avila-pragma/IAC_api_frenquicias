@@ -1,0 +1,43 @@
+# Ejemplo de archivo de variables para Terraform
+# Copia este archivo a terraform.tfvars y completa los valores
+
+aws_region  = "us-east-1"
+environment = "dev"
+project_name = "api-franquicias"
+
+# Configuración de red
+vpc_cidr = "10.0.0.0/16"
+availability_zones = ["us-east-1a", "us-east-1b"]
+
+# Configuración del contenedor
+container_port = 8080  # Spring Boot usa puerto 8080 por defecto
+container_cpu  = 512
+container_memory = 1024
+
+# Configuración de escalado
+desired_count = 2
+min_capacity  = 1
+max_capacity  = 10
+
+# Configuración de MongoDB
+# NOTA: Estos valores son sensibles y deberían estar en Secrets Manager
+# o pasarse como variables de entorno durante terraform apply
+mongodb_host     = "pruebas.kuhx1fs.mongodb.net"
+mongodb_username = "tu_usuario"
+mongodb_password = "tu_contraseña"
+mongodb_database = "api-franquicias"
+
+# Configuración de la imagen Docker
+image_tag = "latest"
+
+# Health check (Spring Boot Actuator usa /actuator/health)
+health_check_path = "/actuator/health"
+
+# API Gateway
+api_gateway_stage_name = "api"
+
+# Configuración de red (para reducir costos en pruebas)
+enable_nat_gateway = true  # Cambiar a false para pruebas (reduce ~$64/mes pero requiere subnets públicas)
+
+# Health check del contenedor
+enable_container_health_check = false  # Cambiar a true solo si la imagen tiene wget/curl
